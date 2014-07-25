@@ -42,7 +42,7 @@ category = Category.SMITHING,
 description = "Makes gold bars in either Premium or Crafting Guild. Start with gold ore in first bank slot.", 
 name = "nGoldBars", 
 servers = { "PKHonor" }, 
-version = 1.4)
+version = 1.5)
 public class nGoldBars extends Script implements Paintable
 {
 private final ArrayList<Strategy> strategies = new ArrayList<>();
@@ -56,10 +56,10 @@ private final ArrayList<Strategy> strategies = new ArrayList<>();
 	private int craftingFurnace = 2643;
 	private int premiumFurnace = 3994;
 	//Scene Objects
-	private final SceneObject[] Banks = SceneObjects.getNearest(2213);
-	private final SceneObject[] furnaces = SceneObjects.getNearest(craftingFurnace, premiumFurnace);
-	final SceneObject booth = Banks[0];
-	final SceneObject furn = furnaces[0];
+	
+	
+	
+	
 	//Paint Vars
 	public int XPRate;
 	public int goldMade = 0;
@@ -79,6 +79,7 @@ private final ArrayList<Strategy> strategies = new ArrayList<>();
 	public boolean onExecute()
 	{
 		img1 = getImage("http://i.imgur.com/AlzP6wl.png");
+		strategies.add(new Relog());
 		strategies.add(new Antis());
 		strategies.add(new Bank());
 		strategies.add(new Smelt());	
@@ -92,19 +93,22 @@ public class Smelt implements Strategy
 	@Override
 	public boolean activate()
 	{
-		return furn != null
-		&& booth != null
-		&& Players.getMyPlayer().getAnimation() == -1
+		return Players.getMyPlayer().getAnimation() == -1
 		&& !Players.getMyPlayer().isInCombat()
-		&& Inventory.isFull()
+		&& !Inventory.isEmpty()
 		&& Inventory.getCount(goldOre) > 0;
 	}
 	@Override
 	public void execute()
 	{
-		if (furn != null)
+		final SceneObject[] furnaces = SceneObjects.getNearest(craftingFurnace, premiumFurnace);
+		if(furnaces.length >0)
 		{
-			furn.interact(0);
+			final SceneObject furn = furnaces[0];
+			if (furn != null)
+			{
+			
+				furn.interact(0);
 			Time.sleep(new SleepCondition()
 			{
 				
@@ -116,20 +120,20 @@ public class Smelt implements Strategy
 			},10000);
 		if(Loader.getClient().getBackDialogId() == smeltInterface)
 			{
-			Time.sleep(300);
-			Menu.sendAction(315, -1, 48, 4000);
-			Time.sleep(1500);
-			Keyboard.getInstance().sendKeys("99"); 
-			
-				while (Inventory.getCount(goldOre) > 0)			
-				{
-					Time.sleep(200);
-				}
+				Time.sleep(300);
+				Menu.sendAction(315, -1, 48, 4000);
+				Time.sleep(1500);
+				Keyboard.getInstance().sendKeys("28"); 
+				
+					while (Inventory.getCount(goldOre) > 0)			
+					{
+						Time.sleep(200);
+					}
 			}
-		Time.sleep(300);
+			Time.sleep(300);
 		
+			}
 		}
-		
 		
 	
 	}
@@ -140,8 +144,7 @@ public class Bank implements Strategy
 	@Override
 	public boolean activate() {
 	
-		return booth != null
-		&& Inventory.getCount(goldOre) == 0
+		return Inventory.getCount(goldOre) == 0
 		&& !Players.getMyPlayer().isInCombat();
 		
 	}
@@ -149,8 +152,11 @@ public class Bank implements Strategy
 	@Override
 	public void execute() 
 	{
-			
-			if(booth != null)
+		final SceneObject[] Banks = SceneObjects.getNearest(2213);
+			if(Banks.length > 0)
+			{
+				final SceneObject booth = Banks[0];
+				if(booth != null)
 			{
 				/*If there is a bank booth near you, it will interact with it.*/
 				booth.interact(0);
@@ -164,7 +170,7 @@ public class Bank implements Strategy
 						/*Check if bank interface is open*/
 						return Loader.getClient().getOpenInterfaceId() == 23350;
 					}
-				}, 6000);
+				}, 9000);
 				
 				/*Deposists Everything into bank*/
 				if(Loader.getClient().getOpenInterfaceId() == 23350)
@@ -199,7 +205,7 @@ public class Bank implements Strategy
 				}, 3000);
 				Time.sleep(300,500);
 			}
-		
+			}
 	}
 	
 }
@@ -290,7 +296,38 @@ public class Bank implements Strategy
         rCount++;
     }
 }
+	public class Relog implements Strategy{
+		public boolean activate(){
+			for (@SuppressWarnings("unused") SceneObject so: SceneObjects.getNearest()){
+				return false;
+			}
 
+			return true;
+		}
+
+		public void execute(){ 
+			System.out.println("Relogging");
+			if (!isLoggedIn()){
+				Keyboard.getInstance().sendKeys("");
+				sleep(6000);
+			}
+			if (!isLoggedIn()){
+				Keyboard.getInstance().sendKeys("");
+				sleep(6000);
+			}
+		}
+	}
+
+	/**
+	 * By Minimal
+	 */
+	public boolean isLoggedIn(){
+		SceneObject[] so = SceneObjects.getNearest();
+		if (so.length > 0)
+			return true;
+		else
+			return false;
+	}
 @Override
 public void paint(Graphics arg0) 
 {
